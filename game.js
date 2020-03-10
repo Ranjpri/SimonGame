@@ -10,7 +10,7 @@ $(document).on("keypress", function () {
     }
 })
 
-async function createLevels() {   
+async function createLevels() {
     level++;
 
     $("h1").text("Level " + level);
@@ -18,50 +18,66 @@ async function createLevels() {
 
     //Creating a Pattern
     creatingPattern();
-   
 
-    for (var i = 0; i < arr.length; i++) {     
+
+    for (var i = 0; i < arr.length; i++) {
         $("." + arr[i]).addClass("pressed");
-        await buttonPress(arr[i]);
-        await pauseAfterRemoveClass();
-    } 
-    
+        makeSound(arr[i]);      
+        await buttonPress(arr[i], 500);
+        await pauseAfterRemoveClass(500);
+    }
+
     numberOfResp = level;
     var len = 0;
     var levelPass = true;
 
     // console.log("******"+level+"********");4
     // console.log(arr);
-    
-     
-    $("button").on("click", function (event) {
-       
-        if (restartLevel) {           
-            restartLevel = false;
-            responseArr.splice(0, responseArr.length);            
-        }
-       
-        responseArr.push(event.target.id);
-        var n1 = arr.length;
-        var n2 = responseArr.length;        
 
-        if (n1 === n2) {
-            console.log("In here");
-            if (matchArrays(responseArr, arr)) {
+
+    $("button").on("click", async function (event) {
+              
+        if (restartLevel) {
+            len = 0;
+            restartLevel = false;
+        }
+        var key = event.target.id; 
+        
+        $("." + key).addClass("pressed");
+        makeSound(key);      
+        await buttonPress(key, 100);
+        await pauseAfterRemoveClass(100);
+
+        if (arr[len] != key) {
+            levelPass = false;                     
+        }
+        
+        len++;
+        if ((!levelPass) || (len == arr.length)) {
+            console.log("All input received");
+            if (levelPass) {
                 console.log("win")
                 createLevels();
                 restartLevel = true;
+                levelPass = true;
                 $("button").off('click');
             }
             else {
                 console.log("fail")
                 $("h1").text("Failed");
                 $("button").off('click');
+                makeSound(wrong);   
             }
 
         }
-       
+
     })
+}
+
+function makeSound(color) {
+    var sound = color + ".mp3";
+    var audio = new Audio("sounds/" + sound);
+    audio.play();
 }
 
 
@@ -90,20 +106,20 @@ function creatingPattern() {
     arr.push(color);
 }
 
-function buttonPress(arr) {
+function buttonPress(arr, time) {
     return new Promise((resolve) => {
         setTimeout(function () {
             $("." + arr).removeClass("pressed");
             resolve("Done");
-        }, 500);
+        }, time);
     }
     )
 }
-function pauseAfterRemoveClass() {
+function pauseAfterRemoveClass(time) {
     return new Promise((resolve) => {
         setTimeout(function () {
             resolve("Done");
-        }, 500);
+        }, time);
     }
     )
 }
